@@ -16,8 +16,6 @@ struct Pixel {
 
 struct [[nodiscard]] Framebuffer {
 public:
-    u32 height_{}, width_{};
-
     Framebuffer(u32 image_height, u32 image_width)
         : height_(image_height)
         , width_(image_width)
@@ -60,7 +58,10 @@ public:
     __host__ __device__ auto operator[](u32 index) -> Color& {
         return buffer_.getData()[index];
     }
+    [[nodiscard]] __host__ __device__ auto height() const -> u32 const { return height_; }
+    [[nodiscard]] __host__ __device__ auto width()  const -> u32 const { return width_; }
 private:
     // AoS for now
     DeviceBuffer buffer_;
+    u32 height_{}, width_{};
 };
