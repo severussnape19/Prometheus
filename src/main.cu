@@ -45,6 +45,21 @@ auto main(i32 argc, char* argv[]) -> i32 {
 
     fb.generatePNG("image.png");
 
+    HittableList world_host{};
+
+    Sphere sphere(Point(0.f, 0.f, -1.f), 0.5f);
+    Sphere surface(Point(0.f, -100.5f, -1.f), 100.f);
+
+    std::array<Hittable *, 2> host_objs = {&sphere, &surface};
+    world_host.objects = host_objs.data();
+    world_host.object_count = 2;
+
+    Framebuffer fb_host(camera.getHeight(), camera.getWidth());
+
+    paint_host_image(camera, fb_host, world_host);
+
+    fb_host.generatePNG("image_cpu.png");
+
     cuda_check(cudaFree(d_objects));
     cuda_check(cudaFree(d_sphere));
     cuda_check(cudaFree(d_surface));

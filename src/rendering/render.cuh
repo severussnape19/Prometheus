@@ -42,3 +42,29 @@ __global__ auto paint_image(Camera &camera, Framebuffer &fb,
   fb[pixel_index].y = g;
   fb[pixel_index].z = b;
 }
+
+auto paint_host_image(Camera const &camera, Framebuffer &fb,
+                      HittableList const &hit_list) -> void {
+  for (usize j{}; j < fb.height(); ++j) {
+    for (usize i{}; i < fb.width(); ++i) {
+      auto pixel_center = camera.get00pxLoc() +
+                          static_cast<f32>(i) * camera.pixel_du() +
+                          static_cast<f32>(j) * camera.pixel_dv();
+
+      auto ray_direction = pixel_center - camera.getCenter();
+      Ray ray(camera.getCenter(), ray_direction);
+
+      Color color = ray_color(ray, hit_list);
+
+      auto r = color.x;
+      auto g = color.y;
+      auto b = color.z;
+
+      usize pixel_index = j * fb.width() + i;
+
+      fb[pixel_index].x = r;
+      fb[pixel_index].y = g;
+      fb[pixel_index].z = b;
+    }
+  }
+}
