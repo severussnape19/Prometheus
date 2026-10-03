@@ -13,5 +13,6 @@ auto log(
 inline auto cuda_check(cudaError_t err, std::source_location loc = std::source_location::current()) -> void {
     if (err != cudaSuccess) {
         fprintf(stderr, "%s:%d %s", loc.file_name(), loc.line(), cudaGetErrorString(err));
+        std::exit(EXIT_FAILURE);
     }
 }

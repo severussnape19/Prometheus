@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+
 using i32 = int;
 using f32 = float;
 using usize = std::size_t;

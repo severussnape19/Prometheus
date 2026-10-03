@@ -64,6 +64,10 @@ public:
         return Vec3(x * scalar, y * scalar, z * scalar);
     }
 
+    HD constexpr auto operator-() const noexcept -> Vec3 {
+      return Vec3(-x, -y, -z);
+    }
+
     [[nodiscard]] HD constexpr auto cross(Vec3 const& rhs) const noexcept -> Vec3 {
         return Vec3(
             y * rhs.z - z * rhs.y,
