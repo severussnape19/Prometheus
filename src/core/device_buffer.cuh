@@ -1,5 +1,5 @@
 #pragma once
-#include "math.hpp"
+#include "math.cuh"
 #include "types.hpp"
 #include <utility>
 

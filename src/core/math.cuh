@@ -1,5 +1,11 @@
 #pragma once
 
+#ifdef __CUDACC__
+#define HD __host__ __device__
+#else
+#define HD
+#endif
+
 #include <array>
 #include <cassert>
 #include <cmath>
@@ -13,13 +19,13 @@
 template <std::floating_point T = f32>
 struct Vec2 {
 public:
-    constexpr Vec2() noexcept : x(static_cast<T>(0)), y(static_cast<T>(0)) {}
+    HD constexpr Vec2() noexcept : x(static_cast<T>(0)), y(static_cast<T>(0)) {}
 
     template <typename U> requires std::convertible_to<U, T>
-    constexpr Vec2(U x, U y) noexcept
+    HD constexpr Vec2(U x, U y) noexcept
         : x(static_cast<T>(x)), y(static_cast<T>(y)) {}
 
-    constexpr auto perp_dot(Vec2 const& rhs) const noexcept -> T {
+    HD constexpr auto perp_dot(Vec2 const& rhs) const noexcept -> T {
         return x * rhs.y - y * rhs.x;
     }
 
@@ -29,36 +35,36 @@ public:
 };
 
 template <std::floating_point T>
-auto deg_to_rad(T degrees) noexcept -> T {
+HD auto deg_to_rad(T degrees) noexcept -> T {
     return degrees * (std::numbers::pi_v<T> / static_cast<T>(180));
 }
 
 template <std::floating_point T = f32>
 struct Vec3 {
 public:
-    constexpr Vec3() noexcept
+    HD constexpr Vec3() noexcept
         : x(static_cast<T>(0)), y(static_cast<T>(0)), z(static_cast<T>(0)) {}
 
-    constexpr explicit Vec3(T scalar) noexcept
+    HD constexpr explicit Vec3(T scalar) noexcept
         : x(scalar), y(scalar), z(scalar) {}
 
-    constexpr Vec3(T vx, T vy, T vz) noexcept
+    HD constexpr Vec3(T vx, T vy, T vz) noexcept
         : x(vx), y(vy), z(vz) {}
 
     template <typename U> requires std::convertible_to<U, T>
-    constexpr Vec3(Vec2<U> const& xy, T vz = static_cast<T>(0)) noexcept
+    HD constexpr Vec3(Vec2<U> const& xy, T vz = static_cast<T>(0)) noexcept
         : x(static_cast<T>(xy.x)), y(static_cast<T>(xy.y)), z(vz) {}
 
-    constexpr auto operator/(T scalar) const noexcept -> Vec3 {
+    HD constexpr auto operator/(T scalar) const noexcept -> Vec3 {
         assert(scalar != static_cast<T>(0));
         return Vec3(x / scalar, y / scalar, z / scalar);
     }
 
-    constexpr auto operator*(T scalar) const noexcept -> Vec3 {
+    HD constexpr auto operator*(T scalar) const noexcept -> Vec3 {
         return Vec3(x * scalar, y * scalar, z * scalar);
     }
 
-    [[nodiscard]] constexpr auto cross(Vec3 const& rhs) const noexcept -> Vec3 {
+    [[nodiscard]] HD constexpr auto cross(Vec3 const& rhs) const noexcept -> Vec3 {
         return Vec3(
             y * rhs.z - z * rhs.y,
             z * rhs.x - x * rhs.z,
@@ -66,21 +72,21 @@ public:
         );
     }
 
-    [[nodiscard]] constexpr auto dot(Vec3 const& rhs) const noexcept -> T {
+    [[nodiscard]] HD constexpr auto dot(Vec3 const& rhs) const noexcept -> T {
         return x * rhs.x + y * rhs.y + z * rhs.z;
     }
 
-    [[nodiscard]] constexpr auto length_sq() const noexcept -> T {
+    [[nodiscard]] HD constexpr auto length_sq() const noexcept -> T {
         return x * x + y * y + z * z;
     }
 
-    [[nodiscard]] auto length() const noexcept -> T {
+    [[nodiscard]] HD auto length() const noexcept -> T {
         auto len_sq = length_sq();
         assert(len_sq != static_cast<T>(0));
         return std::sqrt(len_sq);
     }
 
-    [[nodiscard]] auto normalized() const noexcept -> Vec3 {
+    [[nodiscard]] HD auto normalized() const noexcept -> Vec3 {
         auto len = length();
         assert(len != static_cast<T>(0));
         T inv_len = static_cast<T>(1) / len;
@@ -94,17 +100,27 @@ public:
 };
 
 template <std::floating_point T = f32>
-constexpr auto operator-(Vec3<T> const& a, Vec3<T> const& b) noexcept -> Vec3<T> {
+HD constexpr inline auto operator-(Vec3<T> const& a, Vec3<T> const& b) noexcept -> Vec3<T> {
     return Vec3(a.x - b.x, a.y - b.y, a.z - b.z);
 }
 
 template <std::floating_point T = f32>
-constexpr auto operator+(Vec3<T> const& a, Vec3<T> const& b) noexcept -> Vec3<T> {
+HD constexpr inline auto operator+(Vec3<T> const& a, Vec3<T> const& b) noexcept -> Vec3<T> {
     return Vec3(a.x + b.x, a.y + b.y, a.z + b.z);
 }
 
 template <std::floating_point T = f32>
-constexpr auto dot(Vec3<T> const& a, Vec3<T> const& b) noexcept -> T {
+HD constexpr inline auto operator*(Vec3<T> const& a, T scalar) noexcept -> Vec3<T> {
+    return Vec3(a.x * scalar, a.y * scalar, a.z * scalar);
+}
+
+template <std::floating_point T = f32>
+HD constexpr inline auto operator*(T scalar, Vec3<T> const& a) noexcept -> Vec3<T> {
+    return Vec3(a.x * scalar, a.y * scalar, a.z * scalar);
+}
+
+template <std::floating_point T = f32>
+HD constexpr inline auto dot(Vec3<T> const& a, Vec3<T> const& b) noexcept -> T {
     return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 
@@ -120,38 +136,38 @@ auto operator<<(std::ostream& os, Vec3<T> const& v) -> std::ostream& {
 template <std::floating_point T = f32>
 struct alignas(16) Vec4 {
 public:
-    constexpr Vec4() noexcept
+    HD constexpr Vec4() noexcept
         : x(static_cast<T>(0)), y(static_cast<T>(0)), z(static_cast<T>(0)), w(static_cast<T>(0)) {}
 
     template <typename U> requires std::convertible_to<U, T>
-    constexpr Vec4(Vec3<U> const& v, T w = static_cast<T>(0)) noexcept
+    HD constexpr Vec4(Vec3<U> const& v, T w = static_cast<T>(0)) noexcept
         : x(static_cast<T>(v.x)), y(static_cast<T>(v.y)), z(static_cast<T>(v.z)), w(w) {}
 
-    constexpr explicit Vec4(T scalar) noexcept
+    HD constexpr explicit Vec4(T scalar) noexcept
         : x(scalar), y(scalar), z(scalar), w(scalar) {}
 
     template <typename U> requires std::convertible_to<U, T>
-    constexpr Vec4(U x, U y, U z, U w) noexcept
+    HD constexpr Vec4(U x, U y, U z, U w) noexcept
         : x(static_cast<T>(x)), y(static_cast<T>(y)), z(static_cast<T>(z)), w(static_cast<T>(w)) {}
 
-    constexpr auto operator*(T scalar) const noexcept -> Vec4 {
+    HD constexpr auto operator*(T scalar) const noexcept -> Vec4 {
         return Vec4(x * scalar, y * scalar, z * scalar, w * scalar);
     }
 
-    constexpr auto operator/(T scalar) const noexcept -> Vec4 {
+    HD constexpr auto operator/(T scalar) const noexcept -> Vec4 {
         assert(scalar != static_cast<T>(0));
         T inv_scalar = static_cast<T>(1) / scalar;
         return Vec4(x * inv_scalar, y * inv_scalar, z * inv_scalar, w * inv_scalar);
     }
 
-    constexpr auto operator/=(T scalar) noexcept -> Vec4& {
+    HD constexpr auto operator/=(T scalar) noexcept -> Vec4& {
         assert(scalar != static_cast<T>(0));
         T inv_scalar = static_cast<T>(1) / scalar;
         *this = Vec4(x * inv_scalar, y * inv_scalar, z * inv_scalar, w * inv_scalar);
         return *this;
     }
 
-    [[nodiscard]] constexpr auto cross(Vec4<T> const& rhs) const noexcept -> Vec4 {
+    [[nodiscard]] HD constexpr auto cross(Vec4<T> const& rhs) const noexcept -> Vec4 {
         return Vec4(
             y * rhs.z - z * rhs.y,
             z * rhs.x - x * rhs.z,
@@ -160,39 +176,37 @@ public:
         );
     }
 
-    [[nodiscard]] constexpr auto dot(Vec4<T> const& rhs) const noexcept -> T {
+    [[nodiscard]] HD constexpr auto dot(Vec4<T> const& rhs) const noexcept -> T {
         return x * rhs.x + y * rhs.y + z * rhs.z + w * rhs.w;
     }
 
-    [[nodiscard]] constexpr auto length_sq() const noexcept -> T {
+    [[nodiscard]] HD constexpr auto length_sq() const noexcept -> T {
         return x * x + y * y + z * z + w * w;
     }
 
-    [[nodiscard]] auto length() const noexcept -> T {
+    [[nodiscard]] HD constexpr auto length() const noexcept -> T {
         auto len_sq = length_sq();
         assert(len_sq != static_cast<T>(0));
         return std::sqrt(len_sq);
     }
 
-    [[nodiscard]] auto normalized() const noexcept -> Vec4 {
+    [[nodiscard]] HD constexpr auto normalized() const noexcept -> Vec4 {
         auto len = length();
         assert(len != static_cast<T>(0));
         T inv_len = static_cast<T>(1) / len;
         return *this * inv_len;
     }
-
-
 public:
     T x, y, z, w;
 };
 
 template <std::floating_point T = f32>
-constexpr auto operator-(Vec4<T> const& a, Vec4<T> const& b) noexcept -> Vec4<T> {
+HD constexpr auto operator-(Vec4<T> const& a, Vec4<T> const& b) noexcept -> Vec4<T> {
     return Vec4(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w);
 }
 
 template <std::floating_point T = f32>
-constexpr auto operator+(Vec4<T> const& a, Vec4<T> const& b) noexcept -> Vec4<T> {
+HD constexpr auto operator+(Vec4<T> const& a, Vec4<T> const& b) noexcept -> Vec4<T> {
     return Vec4(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w);
 }
 
@@ -209,10 +223,10 @@ template <std::floating_point T = f32>
 struct alignas(16) Mat4 {
     // Column-major layout matching Vulkan / SPIR-V alignment rules.
 public:
-    constexpr Mat4() noexcept = default;
+    HD constexpr Mat4() noexcept = default;
 
     template <typename U> requires std::convertible_to<U, T>
-    constexpr Mat4(
+    HD constexpr Mat4(
         Vec4<U> const& x,
         Vec4<U> const& y,
         Vec4<U> const& z,
@@ -225,7 +239,7 @@ public:
     }
 
     template <typename U> requires std::convertible_to<U, T>
-    constexpr Mat4(
+    HD constexpr Mat4(
         Vec4<U> const& x,
         Vec4<U> const& y,
         Vec4<U> const& z
@@ -236,7 +250,7 @@ public:
         data[12] = static_cast<T>(0);   data[13] = static_cast<T>(0);   data[14] = static_cast<T>(0);   data[15] = static_cast<T>(1);
     }
 
-    [[nodiscard]] constexpr static auto identity_matrix() noexcept -> Mat4 {
+    [[nodiscard]] HD constexpr static auto identity_matrix() noexcept -> Mat4 {
         Mat4 m{};
         m.data[0]  = static_cast<T>(1);
         m.data[5]  = static_cast<T>(1);
@@ -245,7 +259,7 @@ public:
         return m;
     }
 
-    [[nodiscard]] constexpr static auto translation_matrix(T tx, T ty, T tz) noexcept -> Mat4 {
+    [[nodiscard]] HD constexpr static auto translation_matrix(T tx, T ty, T tz) noexcept -> Mat4 {
         Mat4 m = identity_matrix();
         m.data[12] = tx;
         m.data[13] = ty;
@@ -253,7 +267,7 @@ public:
         return m;
     }
 
-    [[nodiscard]] static auto rotation_x(T angle) noexcept -> Mat4 {
+    [[nodiscard]] HD static auto rotation_x(T angle) noexcept -> Mat4 {
         Mat4 m{};
         T sin_theta = std::sin(angle);
         T cos_theta = std::cos(angle);
@@ -266,7 +280,7 @@ public:
         return m;
     }
 
-    [[nodiscard]] static auto rotation_y(T angle) noexcept -> Mat4 {
+    [[nodiscard]] HD static auto rotation_y(T angle) noexcept -> Mat4 {
         Mat4 m{};
         T sin_theta = std::sin(angle);
         T cos_theta = std::cos(angle);
@@ -279,7 +293,7 @@ public:
         return m;
     }
 
-    [[nodiscard]] static auto rotation_z(T angle) noexcept -> Mat4 {
+    [[nodiscard]] HD static auto rotation_z(T angle) noexcept -> Mat4 {
         Mat4 m{};
         T sin_theta = std::sin(angle);
         T cos_theta = std::cos(angle);
@@ -292,7 +306,7 @@ public:
         return m;
     }
 
-    [[nodiscard]] static auto rotate(Vec4<T>& axis, Vec4<T>& vec, f32 rad) noexcept -> Mat4 {
+    [[nodiscard]] HD static auto rotate(Vec4<T>& axis, Vec4<T>& vec, f32 rad) noexcept -> Mat4 {
         // Rodregues' rotation fomula - Rotation of vector v around an arbitary axis k
         auto cos_t = std::cos(rad);
         auto sin_t = std::sin(rad);
@@ -307,7 +321,7 @@ public:
         return m;
     }
 
-    [[nodiscard]] constexpr static auto scale(T sx, T sy, T sz) noexcept -> Mat4 {
+    [[nodiscard]] HD constexpr static auto scale(T sx, T sy, T sz) noexcept -> Mat4 {
         Mat4 m{};
         m.data[0]  = sx;
         m.data[5]  = sy;
@@ -316,7 +330,7 @@ public:
         return m;
     }
 
-    [[nodiscard]] static auto perspective(T fov_y_radians, T aspect, T near, T far) noexcept -> Mat4 {
+    [[nodiscard]] HD constexpr static auto perspective(T fov_y_radians, T aspect, T near, T far) noexcept -> Mat4 {
         T f = static_cast<T>(1) / std::tan(fov_y_radians / static_cast<T>(2));
         Mat4 m{};
         m.data[0]  = f / aspect;
@@ -327,7 +341,7 @@ public:
         return m;
     }
 
-    constexpr auto operator*(Mat4<T> const& rhs) const noexcept -> Mat4 {
+    HD constexpr auto operator*(Mat4<T> const& rhs) const noexcept -> Mat4 {
         Mat4<T> m{};
         for (std::size_t col{}; col < 4; ++col) {
             for (std::size_t row{}; row < 4; ++row) {
@@ -341,7 +355,7 @@ public:
         return m;
     }
 
-    constexpr auto operator*(Vec4<T> const& rhs) const noexcept -> Vec4<T> {
+    HD constexpr auto operator*(Vec4<T> const& rhs) const noexcept -> Vec4<T> {
         Vec4<T> v{};
         v.x = data[0] * rhs.x + data[4] * rhs.y + data[8]  * rhs.z + data[12] * rhs.w;
         v.y = data[1] * rhs.x + data[5] * rhs.y + data[9]  * rhs.z + data[13] * rhs.w;
@@ -379,3 +393,7 @@ using Mat4f = Mat4<f32>;
 
 using Color = Vec3<f32>;
 using Point = Vec3<f32>;
+
+HD auto lerp(Vec3f x, Vec3f y, f32 t) -> Vec3f {
+    return (1.0f - t) * x + t * y;
+}

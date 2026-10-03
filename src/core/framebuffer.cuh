@@ -1,6 +1,6 @@
 #pragma once
 
-#include "math.hpp"
+#include "math.cuh"
 #include "device_buffer.cuh"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "../third_party/stb_image.h"
