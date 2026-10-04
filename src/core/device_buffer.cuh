@@ -24,15 +24,16 @@ public:
     DeviceBuffer(DeviceBuffer const&) = delete;
     auto operator=(DeviceBuffer const&) = delete;
 
-    auto operator=(DeviceBuffer&& o) -> DeviceBuffer& {
-        if (this == &o) return *this;
-
-        release();
-
-        data = std::exchange(o.data, nullptr);
-        count = std::exchange(o.count, 0u);
-
+    auto operator=(DeviceBuffer &&o) noexcept -> DeviceBuffer & {
+      if (this == &o)
         return *this;
+
+      release();
+
+      data = std::exchange(o.data, nullptr);
+      count = std::exchange(o.count, 0u);
+
+      return *this;
     }
 
     ~DeviceBuffer() {

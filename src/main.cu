@@ -4,6 +4,26 @@
 #include "rendering/render.cuh"
 
 constexpr u32 WIDTH = 1280;
+constexpr u32 WIDTH_HOST = 800;
+
+auto host_gen() -> void {
+    Camera camera_host(static_cast<f32>(16.f / 9.f), WIDTH_HOST, 1.f);
+
+    HittableList world_host{};
+
+    Sphere sphere(Point(0.f, 0.f, -1.f), 0.5f);
+    Sphere surface(Point(0.f, -100.5f, -1.f), 100.f);
+
+    std::array<Hittable *, 2> host_objs = {&sphere, &surface};
+    world_host.objects = host_objs.data();
+    world_host.object_count = 2;
+
+    Framebuffer_host fb_host(camera_host.getHeight(), camera_host.getWidth());
+
+    paint_host_image(camera_host, fb_host, world_host);
+
+    fb_host.generatePNG("image_cpu.png");
+}
 
 auto main(i32 argc, char* argv[]) -> i32 {
     Camera camera(static_cast<f32>(16.f / 9.f), WIDTH, 1.f);
@@ -45,20 +65,7 @@ auto main(i32 argc, char* argv[]) -> i32 {
 
     fb.generatePNG("image.png");
 
-    HittableList world_host{};
-
-    Sphere sphere(Point(0.f, 0.f, -1.f), 0.5f);
-    Sphere surface(Point(0.f, -100.5f, -1.f), 100.f);
-
-    std::array<Hittable *, 2> host_objs = {&sphere, &surface};
-    world_host.objects = host_objs.data();
-    world_host.object_count = 2;
-
-    Framebuffer fb_host(camera.getHeight(), camera.getWidth());
-
-    paint_host_image(camera, fb_host, world_host);
-
-    fb_host.generatePNG("image_cpu.png");
+    host_gen();
 
     cuda_check(cudaFree(d_objects));
     cuda_check(cudaFree(d_sphere));

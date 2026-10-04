@@ -10,8 +10,16 @@
 #include <vector>
 #include "helper.cuh"
 
-struct Pixel {
-    u8 r, g, b;
+auto toByte(f32 x) -> u8 {
+    x = std::clamp(x, 0.0f, 1.0f);
+    return static_cast<u8>(x * 255.0f + 0.5f);
+};
+
+auto linearToSRGB(f32 x) -> f32 {
+    if (x <= 0.0031308f) {
+        return 12.92f * x;
+    }
+    return 1.055f * std::pow(x, 1.0f / 2.4f) - 0.055f;
 };
 
 struct [[nodiscard]] Framebuffer {
@@ -27,18 +35,6 @@ public:
         std::vector<Color> buf(height_ * width_);
         cuda_check(cudaMemcpy(buf.data(), buffer_.getData(), height_ * width_ * sizeof(Color), cudaMemcpyDeviceToHost));
         std::vector<u8> pixels(static_cast<size_t>(width_ * height_ * 3));
-
-        auto toByte = [](f32 x) -> u8 {
-            x = std::clamp(x, 0.0f, 1.0f);
-            return static_cast<u8>(x * 255.0f + 0.5f);
-        };
-
-        auto linearToSRGB = [](f32 x) -> f32 {
-            if (x <= 0.0031308f) {
-                return 12.92f * x;
-            }
-            return 1.055f * std::pow(x, 1.0f / 2.4f) - 0.055f;
-        };
 
         for (usize i = 0; i < static_cast<usize>(width_ * height_); ++i) {
             pixels[i * 3 + 0] = toByte(linearToSRGB(buf[i].x));
@@ -64,4 +60,39 @@ private:
     // AoS for now
     DeviceBuffer buffer_;
     u32 height_{}, width_{};
+};
+
+struct Framebuffer_host {
+public:
+    explicit Framebuffer_host(u32 height, u32 width)
+        : height_(height), width_(width)
+    {
+        buffer_.resize(height * width);
+    }
+
+    auto generatePNG(char const* filename) -> bool {
+        std::vector<u8> pixels(buffer_.size() * 3);
+        for (usize i{}; i < buffer_.size(); ++i) {
+            pixels[i * 3 + 0] = toByte(linearToSRGB(buffer_[i].x));
+            pixels[i * 3 + 1] = toByte(linearToSRGB(buffer_[i].y));
+            pixels[i * 3 + 2] = toByte(linearToSRGB(buffer_[i].z));
+        }
+        return stbi_write_png(
+            filename,
+            width_,
+            height_,
+            3,
+            pixels.data(),
+            width_ * 3) != 0;
+    }
+
+    [[nodiscard]] auto operator[](usize index) -> Color& {
+        return buffer_[index];
+    }
+
+    [[nodiscard]] auto height() const -> u32 const { return height_; }
+    [[nodiscard]] auto width()  const -> u32 const { return width_; }
+private:
+  std::vector<Color> buffer_;
+  u32 height_{}, width_{};
 };

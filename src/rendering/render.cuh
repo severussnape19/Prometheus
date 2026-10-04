@@ -43,7 +43,7 @@ __global__ auto paint_image(Camera &camera, Framebuffer &fb,
   fb[pixel_index].z = b;
 }
 
-auto paint_host_image(Camera const &camera, Framebuffer &fb,
+auto paint_host_image(Camera const &camera, Framebuffer_host &fb,
                       HittableList const &hit_list) -> void {
   for (usize j{}; j < fb.height(); ++j) {
     for (usize i{}; i < fb.width(); ++i) {
