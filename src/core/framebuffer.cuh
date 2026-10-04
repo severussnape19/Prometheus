@@ -9,6 +9,7 @@
 #include <cstring>
 #include <vector>
 #include "helper.cuh"
+#include <fstream>
 
 auto toByte(f32 x) -> u8 {
     x = std::clamp(x, 0.0f, 1.0f);
@@ -62,7 +63,7 @@ private:
     u32 height_{}, width_{};
 };
 
-struct Framebuffer_host {
+struct [[nodiscard]] Framebuffer_host {
 public:
     explicit Framebuffer_host(u32 height, u32 width)
         : height_(height), width_(width)
@@ -84,6 +85,27 @@ public:
             3,
             pixels.data(),
             width_ * 3) != 0;
+    }
+
+    auto generatePPM(char const* filename) -> void {
+        std::ofstream outfile(filename);
+
+        if (!outfile.is_open()) {
+            throw std::runtime_error("Could not open file!");
+        }
+
+        outfile << "P3\n" << width_ << ' ' << height_ << "\n255\n";
+        for (usize i{}; i < buffer_.size(); ++i) {
+            usize pixel_index = i;
+
+            u32 r = static_cast<u32>(buffer_[pixel_index].x * 255.999f);
+            u32 g = static_cast<u32>(buffer_[pixel_index].y * 255.999f);
+            u32 b = static_cast<u32>(buffer_[pixel_index].z * 255.999f);
+
+            outfile << r << ' ' << g << ' ' << b << '\n';
+        }
+
+        outfile.close();
     }
 
     [[nodiscard]] auto operator[](usize index) -> Color& {
