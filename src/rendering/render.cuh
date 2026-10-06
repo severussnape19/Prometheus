@@ -1,5 +1,6 @@
 #pragma once
 #include "../core/framebuffer.cuh"
+#include "../core/utilities.cuh"
 #include "../geometry/hittable.cuh"
 #include "camera.cuh"
 #include "../core/math.cuh"
@@ -7,7 +8,8 @@
 __device__ __host__ auto ray_color(Ray const &r, HittableList const &hit_list)
     -> Color {
   HitRecord hit_rec{};
-  if (hit_list.hit(r, 0.f, INFINITY, hit_rec)) {
+  Interval interval(0.001, infinity);
+  if (hit_list.hit(r, interval, hit_rec)) {
     return 0.5f * Color(hit_rec.normal + Color(1.f, 1.f, 1.f));
   }
 

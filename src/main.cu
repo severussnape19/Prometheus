@@ -22,7 +22,7 @@ auto host_gen() -> void {
 
     paint_host_image(camera_host, fb_host, world_host);
 
-    fb_host.generatePPM("image_cpu.ppm");
+    fb_host.generatePNG("image_cpu.png");
 }
 
 auto main(i32 argc, char* argv[]) -> i32 {

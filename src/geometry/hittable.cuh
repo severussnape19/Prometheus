@@ -2,13 +2,7 @@
 #include "../core/math.cuh"
 #include "ray.cuh"
 #include <cmath>
-#include <new>
-
-#ifdef __CUDACC__
-#define HD __host__ __device__
-#else
-#define HD
-#endif
+#include "../core/utilities.cuh"
 
 class HitRecord {
 public:
@@ -27,7 +21,7 @@ public:
 class Hittable {
 public:
     virtual ~Hittable() = default;
-    HD virtual auto hit(Ray const& ray, f32 ray_tmin, f32 ray_tmax, HitRecord& rec) const -> bool = 0;
+    HD virtual auto hit(Ray const& ray, Interval ray_t, HitRecord& rec) const -> bool = 0;
 };
 
 class Sphere : public Hittable {
@@ -36,7 +30,7 @@ public:
         : center_(center)
         , radius_(radius) {}
 
-    HD auto hit(Ray const& ray, f32 ray_tmin, f32 ray_tmax, HitRecord& rec) const -> bool override {
+    HD auto hit(Ray const& ray, Interval ray_t, HitRecord& rec) const -> bool override {
         Vec3f ray_dir = ray.direction();
         Vec3f L = ray.origin() - center_;
 
@@ -52,9 +46,9 @@ public:
         f32 sqrt_delta  = std::sqrt(delta);
         f32 denominator = 2.0f * a;
         auto root = (-b - sqrt_delta) / denominator;
-        if (root <= ray_tmin || root >= ray_tmax) {
+        if (!ray_t.surrounds(root)) { // !(root < ray_t.max || root > ray_t.min)
             root = (-b + sqrt_delta) / denominator;
-            if (root <= ray_tmin || root >= ray_tmax) {
+            if (!ray_t.surrounds(root)) {
                 return false;
             }
         }
@@ -85,13 +79,13 @@ public:
 
     HittableList() = default;
 
-    HD auto hit(Ray const& ray, f32 ray_tmin, f32 ray_tmax, HitRecord& rec) const -> bool {
+    HD auto hit(Ray const& ray, Interval ray_t, HitRecord& rec) const -> bool {
         HitRecord temp_rec{};
         bool hit_anything{};
-        f32 closest_so_far = ray_tmax;
+        f32 closest_so_far = ray_t.getMax();
 
         for (usize i{}; i < object_count; i++) {
-            if (objects[i]->hit(ray, ray_tmin, closest_so_far, temp_rec)) {
+            if (objects[i]->hit(ray, Interval(ray_t.getMin(), closest_so_far), temp_rec)) {
                 hit_anything = true;
                 closest_so_far = temp_rec.t;
                 rec = temp_rec;
