@@ -1,0 +1,31 @@
+typedef char __nv_bool;
+# 1713 "/opt/cuda/bin/../targets/x86_64-linux/include/driver_types.h"
+enum cudaSharedMemoryMode {
+# 1714 "/opt/cuda/bin/../targets/x86_64-linux/include/driver_types.h"
+cudaSharedMemoryModeDefault,
+# 1716 "/opt/cuda/bin/../targets/x86_64-linux/include/driver_types.h"
+cudaSharedMemoryModeRequirePortable,
+# 1717 "/opt/cuda/bin/../targets/x86_64-linux/include/driver_types.h"
+cudaSharedMemoryModeAllowNonPortable,
+# 1718 "/opt/cuda/bin/../targets/x86_64-linux/include/driver_types.h"
+cudaSharedMemoryModeAllowOversizedSharedMemory,
+# 1719 "/opt/cuda/bin/../targets/x86_64-linux/include/driver_types.h"
+cudaSharedMemoryModePreferOversizedSharedMemory};
+# 229 "/usr/lib/gcc/x86_64-pc-linux-gnu/15.3.0/include/stddef.h" 3
+typedef unsigned long size_t;
+#include "crt/device_runtime.h"
+# 338 "/usr/lib/gcc/x86_64-pc-linux-gnu/15.3.0/include/c++/x86_64-pc-linux-gnu/bits/c++config.h" 3
+typedef unsigned long _ZSt6size_t;
+#if !defined(__CUDABE__)
+#endif
+#if !defined(__CUDABE__)
+#endif
+#if !defined(__CUDABE__)
+#endif
+#include "common_functions.h"
+#if !defined(__CUDABE__)
+#endif
+#if !defined(__CUDABE__)
+#endif
+#if !defined(__CUDABE__)
+#endif
