@@ -1,7 +1,0 @@
-{
-	"InstallScripts" : 
-	[
-		"/home/lakshya/ws/vulkan_ws/tracer/build/cmake_install.cmake"
-	],
-	"Parallel" : false
-}
