@@ -6,10 +6,9 @@
 #include "../third_party/stb_image.h"
 #include <algorithm>
 #include <cmath>
-#include <cstring>
 #include <vector>
-#include "helper.cuh"
 #include <fstream>
+#include "helper.cuh"
 
 auto toByte(f32 x) -> u8 {
     x = std::clamp(x, 0.0f, 1.0f);
@@ -23,9 +22,9 @@ auto linearToSRGB(f32 x) -> f32 {
     return 1.055f * std::pow(x, 1.0f / 2.4f) - 0.055f;
 };
 
-struct [[nodiscard]] Framebuffer {
+class [[nodiscard]] Framebuffer_device{
 public:
-    Framebuffer(u32 image_height, u32 image_width)
+    Framebuffer_device(u32 image_height, u32 image_width)
         : height_(image_height)
         , width_(image_width)
     {
@@ -55,8 +54,8 @@ public:
     __host__ __device__ auto operator[](u32 index) -> Color& {
         return buffer_.getData()[index];
     }
-    [[nodiscard]] __host__ __device__ auto height() const -> u32 const { return height_; }
-    [[nodiscard]] __host__ __device__ auto width()  const -> u32 const { return width_; }
+    [[nodiscard]] HD auto height() const -> u32 { return height_; }
+    [[nodiscard]] HD auto width()  const -> u32 { return width_; }
 private:
     // AoS for now
     DeviceBuffer buffer_;
@@ -66,7 +65,8 @@ private:
 struct [[nodiscard]] Framebuffer_host {
 public:
     explicit Framebuffer_host(u32 height, u32 width)
-        : height_(height), width_(width)
+        : height_(height)
+        , width_(width)
     {
         buffer_.resize(height * width);
     }
@@ -108,12 +108,12 @@ public:
         outfile.close();
     }
 
-    [[nodiscard]] auto operator[](usize index) -> Color& {
+    [[nodiscard]] auto operator[](usize const index) -> Color& {
         return buffer_[index];
     }
 
-    [[nodiscard]] auto height() const -> u32 const { return height_; }
-    [[nodiscard]] auto width()  const -> u32 const { return width_; }
+    [[nodiscard]] auto height() const -> u32 { return height_; }
+    [[nodiscard]] auto width()  const -> u32 { return width_; }
 private:
   std::vector<Color> buffer_;
   u32 height_{}, width_{};

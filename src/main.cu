@@ -1,7 +1,6 @@
 #include "core/types.hpp"
 #include "geometry/hittable.cuh"
 #include "rendering/camera.cuh"
-#include "rendering/render.cuh"
 
 constexpr u32 WIDTH = 1280;
 constexpr u32 WIDTH_HOST = 800;
@@ -20,7 +19,7 @@ auto host_gen() -> void {
 
     Framebuffer_host fb_host(camera_host.getHeight(), camera_host.getWidth());
 
-    paint_host_image(camera_host, fb_host, world_host);
+    camera_host.render_cpu(fb_host, world_host);
 
     fb_host.generatePNG("image_cpu.png");
 }
@@ -50,7 +49,7 @@ auto main(i32 argc, char* argv[]) -> i32 {
     world.objects = d_objects;
     world.object_count = 2;
 
-    Framebuffer fb(camera.getHeight(), camera.getWidth());
+    Framebuffer_device fb(camera.getHeight(), camera.getWidth());
 
     dim3 block(16, 16);
     dim3 grid(
